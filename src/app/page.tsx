@@ -2,13 +2,12 @@
 
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
-import Image from "next/image";
 
-export default function Home() {
+export default function HomePage() {
   const router = useRouter();
 
   useEffect(() => {
-    router.push("/login");
+    router.push('/onboarding');
   }, [router]);
 
   return null;
