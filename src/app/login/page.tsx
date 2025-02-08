@@ -15,6 +15,7 @@ const SHOWCASE_IMAGES = [
     role: "UI & Illustration"
   },
   {
+
     url: "https://images.unsplash.com/photo-1483058712412-4245e9b90334",
     title: "Creative Space",
     author: "Sarah.design",
