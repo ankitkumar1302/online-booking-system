@@ -12,12 +12,14 @@
     "@headlessui/react": "^2.2.0",
     "@heroicons/react": "^2.2.0",
     "@radix-ui/react-tooltip": "^1.1.8",
+    "clsx": "^2.1.1",
     "date-fns": "^4.1.0",
     "framer-motion": "^12.4.1",
     "next": "15.1.6",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
-    "sonner": "^1.7.4"
+    "sonner": "^1.7.4",
+    "tailwind-merge": "^3.0.1"
   },
   "devDependencies": {
     "@types/node": "^20",

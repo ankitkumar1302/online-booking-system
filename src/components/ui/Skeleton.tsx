@@ -1,9 +1,10 @@
 "use client";
 
 import { useTheme } from "@/context/ThemeContext";
-import { motion } from "framer-motion";
+import { motion, HTMLMotionProps } from "framer-motion";
+import { cn } from "@/lib/utils";
 
-interface SkeletonProps extends React.HTMLAttributes<HTMLDivElement> {
+interface SkeletonProps extends HTMLMotionProps<"div"> {
   className?: string;
 }
 
@@ -19,9 +20,11 @@ export function Skeleton({ className = "", ...props }: SkeletonProps) {
         repeat: Infinity,
         ease: "easeInOut"
       }}
-      className={`${
-        theme === "dark" ? "bg-white/10" : "bg-gray-200"
-      } rounded-md ${className}`}
+      className={cn(
+        theme === "dark" ? "bg-white/10" : "bg-gray-200",
+        "rounded-md",
+        className
+      )}
       {...props}
     />
   );
