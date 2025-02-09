@@ -1,11 +1,15 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useTheme } from "@/context/ThemeContext";
 import UserDashboardLayout from "@/components/dashboard/UserDashboardLayout";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
+import { useDebounce } from "@/hooks/useDebounce";
+import { Tooltip } from "@/components/ui/Tooltip";
+import { Skeleton } from "@/components/ui/Skeleton";
+import { toast } from "sonner";
 
 // Mock data - Replace with API call
 const TICKETS = [
@@ -115,6 +119,10 @@ export default function UserDashboardPage() {
   const [selectedDate, setSelectedDate] = useState("");
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [direction, setDirection] = useState(1);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  
+  const debouncedSearchQuery = useDebounce(searchQuery, 300);
 
   // Price range values in USD
   const PRICE_RANGES = {
@@ -124,7 +132,28 @@ export default function UserDashboardPage() {
     "$200+": [200, Infinity]
   };
 
-  // Filter tickets based on search criteria
+  // Simulate API call for tickets
+  const fetchTickets = useCallback(async () => {
+    try {
+      setIsLoading(true);
+      setError(null);
+      // Simulate API delay
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      // In a real app, this would be an API call
+      setFilteredTickets(TICKETS);
+    } catch (err) {
+      setError("Failed to load tickets. Please try again later.");
+      toast.error("Failed to load tickets");
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchTickets();
+  }, [fetchTickets]);
+
+  // Filter tickets based on search criteria with debounced search
   useEffect(() => {
     let filtered = TICKETS;
 
@@ -135,8 +164,8 @@ export default function UserDashboardPage() {
     const [minPrice, maxPrice] = PRICE_RANGES[priceRange as keyof typeof PRICE_RANGES];
     filtered = filtered.filter(ticket => ticket.price >= minPrice && ticket.price <= maxPrice);
 
-    if (searchQuery) {
-      const query = searchQuery.toLowerCase();
+    if (debouncedSearchQuery) {
+      const query = debouncedSearchQuery.toLowerCase();
       filtered = filtered.filter(ticket => 
         ticket.title.toLowerCase().includes(query) ||
         ticket.company.toLowerCase().includes(query)
@@ -144,7 +173,7 @@ export default function UserDashboardPage() {
     }
 
     setFilteredTickets(filtered);
-  }, [ticketType, priceRange, searchQuery]);
+  }, [ticketType, priceRange, debouncedSearchQuery]);
 
   // Add this effect after existing effects
   useEffect(() => {
@@ -158,6 +187,7 @@ export default function UserDashboardPage() {
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
+    toast.success("Search filters applied");
   };
 
   const formatPrice = (price: number) => {
@@ -168,19 +198,39 @@ export default function UserDashboardPage() {
     }).format(price);
   };
 
+  // Loading Skeleton Component
+  const TicketSkeleton = () => (
+    <div className={`rounded-2xl overflow-hidden ${
+      theme === "dark" ? "bg-white/5" : "bg-white"
+    } border border-gray-100 dark:border-white/10`}>
+      <Skeleton className="h-48 w-full" />
+      <div className="p-6 space-y-4">
+        <Skeleton className="h-4 w-24" />
+        <Skeleton className="h-6 w-48" />
+        <div className="flex justify-between items-center">
+          <Skeleton className="h-8 w-24" />
+          <Skeleton className="h-10 w-28" />
+        </div>
+      </div>
+    </div>
+  );
+
   return (
     <UserDashboardLayout>
+      {/* Main container with responsive padding and vertical spacing */}
       <div className="p-4 sm:p-6 lg:p-8 space-y-8">
-        {/* Hero Section - Full Width with Rounded Corners */}
+        {/* Hero Section - Full width carousel with rounded corners */}
         <motion.div 
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 0.8 }}
           className="relative w-full h-[650px] rounded-[2.5rem] overflow-hidden shadow-2xl"
         >
+          {/* Hero Background Container */}
           <div className="relative h-full">
-            {/* Background Image/Video with Overlay */}
+            {/* Animated Background Image Carousel */}
             <div className="absolute inset-0 w-full h-full">
+              {/* Current Image with Animation */}
               <motion.div
                 key={currentImageIndex}
                 initial={{ x: direction * 100 + "%", opacity: 0 }}
@@ -189,6 +239,7 @@ export default function UserDashboardPage() {
                 transition={{ type: "tween", duration: 0.8, ease: "easeInOut" }}
                 className="absolute inset-0"
               >
+                {/* Background Image with Gradient Overlay */}
                 <Image
                   src={HERO_IMAGES[currentImageIndex].url}
                   alt={HERO_IMAGES[currentImageIndex].alt}
@@ -200,7 +251,7 @@ export default function UserDashboardPage() {
                 <div className="absolute inset-0 bg-gradient-to-b from-black/70 via-black/50 to-black/80" />
               </motion.div>
 
-              {/* Navigation Dots */}
+              {/* Carousel Navigation Dots */}
               <div className="absolute bottom-6 left-1/2 transform -translate-x-1/2 flex items-center gap-2 z-10">
                 {HERO_IMAGES.map((_, index) => (
                   <button
@@ -219,7 +270,7 @@ export default function UserDashboardPage() {
                 ))}
               </div>
 
-              {/* Navigation Arrows */}
+              {/* Carousel Navigation Arrows */}
               <button
                 onClick={() => {
                   setDirection(-1);
@@ -249,7 +300,7 @@ export default function UserDashboardPage() {
                 </svg>
               </button>
 
-              {/* Floating Elements */}
+              {/* Floating Decorative Elements */}
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -293,9 +344,11 @@ export default function UserDashboardPage() {
               </motion.div>
             </div>
 
-            {/* Hero Content */}
+            {/* Hero Content - Centered Text and Search */}
             <div className="absolute inset-0 flex items-center justify-center">
+              {/* Content Container with Max Width */}
               <div className="w-full max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 text-center">
+                {/* Animated Text Content */}
                 <motion.div
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
@@ -319,7 +372,7 @@ export default function UserDashboardPage() {
                   </p>
                 </motion.div>
 
-                {/* Enhanced Search Box */}
+                {/* Enhanced Search Form */}
                 <motion.form 
                   onSubmit={handleSearch}
                   initial={{ opacity: 0, y: 20 }}
@@ -394,7 +447,7 @@ export default function UserDashboardPage() {
           </div>
         </motion.div>
 
-        {/* Quick Selection Section - Similar to Onboarding */}
+        {/* Quick Selection Section - Booking Options */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -550,9 +603,9 @@ export default function UserDashboardPage() {
           </div>
         </motion.div>
 
-        {/* Content Container */}
+        {/* Main Content Container */}
         <div className="max-w-[1400px] mx-auto space-y-12">
-          {/* Quick Categories */}
+          {/* Quick Categories Grid */}
           <motion.div 
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -587,7 +640,7 @@ export default function UserDashboardPage() {
             ))}
           </motion.div>
 
-          {/* Featured Tickets */}
+          {/* Featured Tickets Section */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -606,197 +659,194 @@ export default function UserDashboardPage() {
                 </p>
               </div>
               <div className="flex items-center gap-4">
-                <select 
-                  value={priceRange}
-                  onChange={(e) => setPriceRange(e.target.value)}
-                  className={`px-4 py-2 rounded-lg border ${
-                    theme === "dark" ? "bg-white/5 border-white/10 text-white" : "bg-white border-gray-200 text-gray-900"
-                  } focus:outline-none focus:ring-2 focus:ring-indigo-500`}
-                >
-                  <option>Any price</option>
-                  <option>Under $50</option>
-                  <option>$50 - $200</option>
-                  <option>$200+</option>
-                </select>
+                <Tooltip content="Filter tickets by price range">
+                  <select 
+                    value={priceRange}
+                    onChange={(e) => setPriceRange(e.target.value)}
+                    className={`px-4 py-2 rounded-lg border ${
+                      theme === "dark" ? "bg-white/5 border-white/10 text-white" : "bg-white border-gray-200 text-gray-900"
+                    } focus:outline-none focus:ring-2 focus:ring-indigo-500`}
+                    aria-label="Price range filter"
+                  >
+                    <option>Any price</option>
+                    <option>Under $50</option>
+                    <option>$50 - $200</option>
+                    <option>$200+</option>
+                  </select>
+                </Tooltip>
                 <p className={theme === "dark" ? "text-white/50" : "text-gray-500"}>
                   {filteredTickets.length} options
                 </p>
               </div>
             </div>
             
-            {filteredTickets.length === 0 ? (
-              <div className={`text-center py-12 ${
-                theme === "dark" ? "text-white/50" : "text-gray-500"
-              }`}>
-                No tickets found matching your criteria
+            {error ? (
+              <div className="text-center py-12">
+                <p className="text-red-500 dark:text-red-400 mb-4">{error}</p>
+                <button
+                  onClick={fetchTickets}
+                  className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors"
+                >
+                  Try Again
+                </button>
               </div>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                {filteredTickets.map((ticket, index) => (
-                  <motion.div
-                    key={ticket.id}
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.1 * index, duration: 0.6 }}
-                    className={`group rounded-2xl overflow-hidden ${
-                      theme === "dark" ? "bg-white/5" : "bg-white"
-                    } hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1 border border-gray-100 dark:border-white/10`}
-                  >
-                    <div className="relative h-48">
-                      <Image
-                        src={ticket.image}
-                        alt={ticket.title}
-                        fill
-                        className="object-cover transition-transform duration-700 group-hover:scale-110"
-                        quality={90}
-                      />
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-                      <div className="absolute top-4 left-4 flex items-center gap-2">
-                        <span className="px-3 py-1 rounded-full text-sm font-medium bg-white/90 text-gray-900">
-                          {ticket.type}
-                        </span>
-                        {ticket.featured && (
-                          <span className="px-3 py-1 rounded-full text-sm font-medium bg-gradient-to-r from-amber-500 to-orange-500 text-white">
-                            Featured
-                          </span>
-                        )}
-                      </div>
-                    </div>
-                    <div className="p-6">
-                      <div className="flex items-center justify-between mb-3">
-                        <span className={`text-sm font-medium ${
-                          theme === "dark" ? "text-white/70" : "text-gray-600"
-                        }`}>
-                          {ticket.company}
-                        </span>
-                        <div className="flex items-center gap-1">
-                          <svg className="w-4 h-4 text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
-                            <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                          </svg>
-                          <span className={`text-sm font-medium ${
-                            theme === "dark" ? "text-white" : "text-gray-900"
-                          }`}>
-                            {ticket.rating}
-                          </span>
-                          <span className={`text-sm ${
-                            theme === "dark" ? "text-white/50" : "text-gray-500"
-                          }`}>
-                            ({ticket.reviews})
-                          </span>
-                        </div>
-                      </div>
-                      <h3 className={`text-xl font-semibold mb-4 ${
-                        theme === "dark" ? "text-white" : "text-gray-900"
+                <AnimatePresence mode="sync">
+                  {isLoading ? (
+                    // Show skeletons while loading
+                    Array.from({ length: 6 }).map((_, index) => (
+                      <motion.div
+                        key={`skeleton-${index}`}
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                      >
+                        <TicketSkeleton />
+                      </motion.div>
+                    ))
+                  ) : filteredTickets.length === 0 ? (
+                    <motion.div
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      exit={{ opacity: 0 }}
+                      className="col-span-full text-center py-12"
+                    >
+                      <p className={`text-lg ${
+                        theme === "dark" ? "text-white/50" : "text-gray-500"
                       }`}>
-                        {ticket.title}
-                      </h3>
-                      <div className="flex items-center justify-between mb-6">
-                        <div className="flex items-center gap-4">
-                          <div className="flex items-center gap-1">
-                            <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                            </svg>
-                            <span className={theme === "dark" ? "text-white/50" : "text-gray-500"}>
-                              {ticket.specs.duration}
-                            </span>
-                          </div>
-                          <div className="flex items-center gap-1">
-                            <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
-                            </svg>
-                            <span className={theme === "dark" ? "text-white/50" : "text-gray-500"}>
-                              {ticket.specs.class || ticket.specs.screen}
-                            </span>
+                        No tickets found matching your criteria
+                      </p>
+                    </motion.div>
+                  ) : (
+                    // Render actual tickets
+                    filteredTickets.map((ticket, index) => (
+                      <motion.div
+                        key={ticket.id}
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -20 }}
+                        transition={{ delay: 0.1 * index, duration: 0.6 }}
+                        className={`group rounded-2xl overflow-hidden ${
+                          theme === "dark" ? "bg-white/5" : "bg-white"
+                        } hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1 border border-gray-100 dark:border-white/10`}
+                        tabIndex={0}
+                        role="article"
+                        aria-label={`${ticket.title} by ${ticket.company}`}
+                      >
+                        <div className="relative h-48">
+                          <Image
+                            src={ticket.image}
+                            alt={ticket.title}
+                            fill
+                            className="object-cover transition-transform duration-700 group-hover:scale-110"
+                            quality={90}
+                          />
+                          <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                          <div className="absolute top-4 left-4 flex items-center gap-2">
+                            <Tooltip content={`${ticket.type} ticket`}>
+                              <span className="px-3 py-1 rounded-full text-sm font-medium bg-white/90 text-gray-900">
+                                {ticket.type}
+                              </span>
+                            </Tooltip>
+                            {ticket.featured && (
+                              <Tooltip content="Special featured offer">
+                                <span className="px-3 py-1 rounded-full text-sm font-medium bg-gradient-to-r from-amber-500 to-orange-500 text-white">
+                                  Featured
+                                </span>
+                              </Tooltip>
+                            )}
                           </div>
                         </div>
-                        <span className={`text-sm font-medium ${
-                          theme === "dark" ? "text-indigo-400" : "text-indigo-600"
-                        }`}>
-                          {ticket.specs.seats}
-                        </span>
-                      </div>
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <p className={`text-sm ${theme === "dark" ? "text-white/50" : "text-gray-500"}`}>
-                            {ticket.date} • {ticket.time}
-                          </p>
-                          <p className={`text-2xl font-bold mt-1 ${
+                        <div className="p-6">
+                          <div className="flex items-center justify-between mb-3">
+                            <span className={`text-sm font-medium ${
+                              theme === "dark" ? "text-white/70" : "text-gray-600"
+                            }`}>
+                              {ticket.company}
+                            </span>
+                            <div className="flex items-center gap-1">
+                              <svg className="w-4 h-4 text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
+                                <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                              </svg>
+                              <span className={`text-sm font-medium ${
+                                theme === "dark" ? "text-white" : "text-gray-900"
+                              }`}>
+                                {ticket.rating}
+                              </span>
+                              <span className={`text-sm ${
+                                theme === "dark" ? "text-white/50" : "text-gray-500"
+                              }`}>
+                                ({ticket.reviews})
+                              </span>
+                            </div>
+                          </div>
+                          <h3 className={`text-xl font-semibold mb-4 ${
                             theme === "dark" ? "text-white" : "text-gray-900"
                           }`}>
-                            {formatPrice(ticket.price)}
-                          </p>
+                            {ticket.title}
+                          </h3>
+                          <div className="flex items-center justify-between mb-6">
+                            <div className="flex items-center gap-4">
+                              <div className="flex items-center gap-1">
+                                <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                                <span className={theme === "dark" ? "text-white/50" : "text-gray-500"}>
+                                  {ticket.specs.duration}
+                                </span>
+                              </div>
+                              <div className="flex items-center gap-1">
+                                <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                                </svg>
+                                <span className={theme === "dark" ? "text-white/50" : "text-gray-500"}>
+                                  {ticket.specs.class || ticket.specs.screen}
+                                </span>
+                              </div>
+                            </div>
+                            <span className={`text-sm font-medium ${
+                              theme === "dark" ? "text-indigo-400" : "text-indigo-600"
+                            }`}>
+                              {ticket.specs.seats}
+                            </span>
+                          </div>
+                          <div className="flex items-center justify-between">
+                            <div>
+                              <p className={`text-sm ${theme === "dark" ? "text-white/50" : "text-gray-500"}`}>
+                                {ticket.date} • {ticket.time}
+                              </p>
+                              <p className={`text-2xl font-bold mt-1 ${
+                                theme === "dark" ? "text-white" : "text-gray-900"
+                              }`}>
+                                {formatPrice(ticket.price)}
+                              </p>
+                            </div>
+                            <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                              <Link
+                                href={`/booking/${ticket.id}`}
+                                className="px-6 py-3 bg-gradient-to-r from-indigo-600 to-indigo-700 text-white text-sm font-medium rounded-xl hover:from-indigo-700 hover:to-indigo-800 transition-all focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 shadow-lg"
+                              >
+                                Book Now
+                              </Link>
+                            </motion.div>
+                          </div>
                         </div>
-                        <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-                          <Link
-                            href={`/booking/${ticket.id}`}
-                            className="px-6 py-3 bg-gradient-to-r from-indigo-600 to-indigo-700 text-white text-sm font-medium rounded-xl hover:from-indigo-700 hover:to-indigo-800 transition-all focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 shadow-lg"
-                          >
-                            Book Now
-                          </Link>
-                        </motion.div>
-                      </div>
-                    </div>
-                  </motion.div>
-                ))}
+                      </motion.div>
+                    ))
+                  )}
+                </AnimatePresence>
               </div>
             )}
           </motion.div>
 
-          {/* Enhanced Partners & Gallery Section */}
+          {/* Gallery Section */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 1, duration: 0.6 }}
             className="max-w-7xl mx-auto"
           >
-            {/* Partners */}
-            <div className={`rounded-[2rem] ${theme === "dark" ? "bg-white/5" : "bg-white"} p-8 sm:p-12 border border-gray-100 dark:border-white/10 mb-12 shadow-xl`}>
-              <h3 className={`text-center text-2xl font-semibold mb-8 ${
-                theme === "dark" ? "text-white" : "text-gray-900"
-              }`}>
-                Trusted by World's Best Companies
-              </h3>
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-8 sm:gap-12 items-center justify-items-center">
-                <motion.div whileHover={{ scale: 1.1 }} className="w-32">
-                  <Image
-                    src="/airasia.svg"
-                    alt="AirAsia"
-                    width={100}
-                    height={32}
-                    className="grayscale opacity-50 hover:opacity-100 transition-opacity"
-                  />
-                </motion.div>
-                <motion.div whileHover={{ scale: 1.1 }} className="w-32">
-                  <Image
-                    src="/cgv.svg"
-                    alt="CGV"
-                    width={100}
-                    height={32}
-                    className="grayscale opacity-50 hover:opacity-100 transition-opacity"
-                  />
-                </motion.div>
-                <motion.div whileHover={{ scale: 1.1 }} className="w-32">
-                  <Image
-                    src="/garuda.svg"
-                    alt="Garuda Indonesia"
-                    width={100}
-                    height={32}
-                    className="grayscale opacity-50 hover:opacity-100 transition-opacity"
-                  />
-                </motion.div>
-                <motion.div whileHover={{ scale: 1.1 }} className="w-32">
-                  <Image
-                    src="/imax.svg"
-                    alt="IMAX"
-                    width={100}
-                    height={32}
-                    className="grayscale opacity-50 hover:opacity-100 transition-opacity"
-                  />
-                </motion.div>
-              </div>
-            </div>
-
-            {/* Gallery Section */}
             <div className="space-y-8">
               <div className="text-center">
                 <h2 className={`text-3xl font-bold ${
@@ -1000,4 +1050,4 @@ export default function UserDashboardPage() {
       </div>
     </UserDashboardLayout>
   );
-} 
+}
