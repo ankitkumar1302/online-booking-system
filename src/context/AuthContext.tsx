@@ -7,6 +7,7 @@ type User = {
   email: string;
   role: "admin" | "user";
   name: string;
+  image?: string;
 } | null;
 
 interface AuthContextType {

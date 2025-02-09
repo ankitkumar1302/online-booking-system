@@ -297,7 +297,7 @@ export default function UserDashboardLayout({ children }: UserDashboardLayoutPro
                 >
                   <div className="flex items-center gap-2">
                     <Image
-                      src={user?.image || "https://ui-avatars.com/api/?background=6366F1&color=fff"}
+                      src={user?.image ?? `https://ui-avatars.com/api/?name=${encodeURIComponent(user?.name || 'User')}&background=6366F1&color=fff`}
                       alt={user?.name || "User"}
                       width={32}
                       height={32}
