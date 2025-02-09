@@ -101,16 +101,28 @@ export default function UserOnboardingPage() {
       try {
         // Save selections to localStorage
         localStorage.setItem('userPreferences', JSON.stringify(selections));
-        // Set onboarding completion cookie
-        document.cookie = 'onboarding_completed=true; path=/';
-        // Redirect to dashboard
-        router.push('/dashboard');
+        
+        // Set onboarding completion cookie with a long expiry
+        const expiryDate = new Date();
+        expiryDate.setFullYear(expiryDate.getFullYear() + 1);
+        document.cookie = `onboarding_completed=true; path=/; expires=${expiryDate.toUTCString()}`;
+        
+        // Use replace instead of push to prevent going back to onboarding
+        await router.replace('/dashboard');
       } catch (error) {
         console.error('Error saving preferences:', error);
         setIsLoading(false);
       }
     }
   };
+
+  // Prevent accessing onboarding if already completed
+  useEffect(() => {
+    const onboardingCompleted = document.cookie.includes('onboarding_completed=true');
+    if (onboardingCompleted) {
+      router.replace('/dashboard');
+    }
+  }, [router]);
 
   const currentStepData = ONBOARDING_STEPS[currentStep - 1];
   const progress = (currentStep / ONBOARDING_STEPS.length) * 100;
