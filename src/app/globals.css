@@ -5,12 +5,18 @@
 :root {
   --background: #ffffff;
   --foreground: #171717;
+  --toast-bg: #fff;
+  --toast-color: #1f2937;
+  --toast-border: #e5e7eb;
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
     --background: #0a0a0a;
     --foreground: #ededed;
+    --toast-bg: #1f2937;
+    --toast-color: #fff;
+    --toast-border: rgba(255, 255, 255, 0.1);
   }
 }
 

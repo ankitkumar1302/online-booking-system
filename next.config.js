@@ -4,18 +4,18 @@ const nextConfig = {
     remotePatterns: [
       {
         protocol: 'https',
-        hostname: 'images.unsplash.com',
+        hostname: 'upload.wikimedia.org'
       },
       {
         protocol: 'https',
-        hostname: 'ui-avatars.com',
+        hostname: 'ui-avatars.com'
       },
       {
         protocol: 'https',
-        hostname: 'www.google.com',
-      },
-    ],
-  },
-};
+        hostname: 'images.unsplash.com'
+      }
+    ]
+  }
+}
 
-export default nextConfig;
+module.exports = nextConfig 
