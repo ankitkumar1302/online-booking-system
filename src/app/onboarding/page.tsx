@@ -152,10 +152,10 @@ const CustomDatePicker = ({
 
       {isOpen && (
         <motion.div
-          initial={{ opacity: 0, y: 10 }}
+          initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: -10 }}
-          className={`absolute z-50 mt-2 p-4 rounded-xl shadow-xl border border-white/10 w-[300px] ${
+          exit={{ opacity: 0, y: 10 }}
+          className={`absolute bottom-full mb-2 left-1/2 transform -translate-x-1/2 z-50 p-4 rounded-xl shadow-2xl border border-white/10 w-[300px] ${
             theme === "dark" ? "bg-[#1C1D21]" : "bg-white"
           }`}
         >
