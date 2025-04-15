@@ -4,11 +4,16 @@ import { ThemeProvider } from "@/context/ThemeContext";
 import { AuthProvider } from "@/context/AuthContext";
 import { Toaster } from "sonner";
 
-interface RootLayoutClientProps {
+/**
+ * AppProviders - Wraps the application with necessary context providers
+ * 
+ * This component provides theme and authentication context to the entire app.
+ */
+interface AppProvidersProps {
   children: React.ReactNode;
 }
 
-export default function RootLayoutClient({ children }: RootLayoutClientProps) {
+export default function AppProviders({ children }: AppProvidersProps) {
   return (
     <AuthProvider>
       <ThemeProvider>

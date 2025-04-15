@@ -297,8 +297,8 @@ export default function UserDashboardLayout({ children }: UserDashboardLayoutPro
                 >
                   <div className="flex items-center gap-2">
                     <Image
-                      src={user?.image ?? `https://ui-avatars.com/api/?name=${encodeURIComponent(user?.name || 'User')}&background=6366F1&color=fff`}
-                      alt={user?.name || "User"}
+                      src={`https://ui-avatars.com/api/?name=${encodeURIComponent(user?.user_name || 'User')}&background=6366F1&color=fff`}
+                      alt={user?.user_name || "User"}
                       width={32}
                       height={32}
                       className="rounded-lg"
@@ -306,7 +306,7 @@ export default function UserDashboardLayout({ children }: UserDashboardLayoutPro
                     <span className={`hidden lg:block text-sm font-medium ${
                       theme === "dark" ? "text-white" : "text-gray-900"
                     }`}>
-                      {user?.name || "User"}
+                      {user?.user_name || "User"}
                     </span>
                   </div>
                   <svg className={`w-4 h-4 ${
@@ -333,12 +333,12 @@ export default function UserDashboardLayout({ children }: UserDashboardLayoutPro
                           <div className={`text-sm font-medium ${
                             theme === "dark" ? "text-white" : "text-gray-900"
                           }`}>
-                            {user?.name || "User"}
+                            {user?.user_name || "User"}
                           </div>
                           <div className={`text-xs truncate ${
                             theme === "dark" ? "text-white/50" : "text-gray-500"
                           }`}>
-                            {user?.email || "user@example.com"}
+                            {user?.user_email || "user@example.com"}
                           </div>
                         </div>
                         
@@ -399,12 +399,12 @@ export default function UserDashboardLayout({ children }: UserDashboardLayoutPro
                       href={item.href}
                       className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-300 ${
                         pathname === item.href
-                          ? theme === "dark"
+                          ? (theme === "dark"
                             ? "bg-white/10 text-white"
-                            : "bg-gray-100 text-gray-900"
-                          : theme === "dark"
+                            : "bg-gray-100 text-gray-900")
+                          : (theme === "dark"
                             ? "text-white/80 hover:bg-white/10"
-                            : "text-gray-700 hover:bg-gray-100"
+                            : "text-gray-700 hover:bg-gray-100")
                       }`}
                       onClick={() => setIsMobileMenuOpen(false)}
                     >

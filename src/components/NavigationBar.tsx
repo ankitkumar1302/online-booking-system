@@ -3,13 +3,20 @@
 import Link from "next/link";
 import { useTheme } from "@/context/ThemeContext";
 
-const QUICK_LINKS = [
+// Quick links shown in the navigation
+const NAVIGATION_LINKS = [
   { label: "Book Flight", icon: "✈️", href: "/book/flight" },
   { label: "Book Bus", icon: "🚌", href: "/book/bus" },
   { label: "Book Movie", icon: "🎬", href: "/book/movie" }
 ];
 
-export default function Navbar() {
+/**
+ * NavigationBar - Main navigation component for the website
+ * 
+ * This component provides the top navigation bar with links to
+ * different booking options and user authentication.
+ */
+export default function NavigationBar() {
   const { theme, toggleTheme } = useTheme();
 
   return (
@@ -30,9 +37,9 @@ export default function Navbar() {
             </span>
           </Link>
 
-          {/* Quick Links */}
+          {/* Navigation Links - Only show on medium screens and larger */}
           <div className="hidden md:flex items-center gap-6">
-            {QUICK_LINKS.map((link) => (
+            {NAVIGATION_LINKS.map((link) => (
               <Link
                 key={link.label}
                 href={link.href}
@@ -46,9 +53,9 @@ export default function Navbar() {
             ))}
           </div>
 
-          {/* Right Section */}
+          {/* Right Side Controls */}
           <div className="flex items-center gap-4">
-            {/* Theme Toggle */}
+            {/* Theme Toggle Button */}
             <button
               onClick={toggleTheme}
               className={`p-2 rounded-lg ${
@@ -56,7 +63,7 @@ export default function Navbar() {
                   ? "bg-white/10 text-white"
                   : "bg-gray-100 text-gray-900"
               }`}
-              aria-label="Toggle theme"
+              aria-label="Toggle dark/light theme"
             >
               {theme === "dark" ? (
                 <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">

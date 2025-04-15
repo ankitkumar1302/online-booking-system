@@ -4,40 +4,41 @@ import Image from "next/image";
 import Link from "next/link";
 import { ReactNode } from "react";
 
-const SHOWCASE_IMAGES = [
-  {
-    url: "https://images.unsplash.com/photo-1522071820081-009f0129c71c",
-    title: "Modern Office",
-    author: "John.booking",
-    role: "Business Manager"
-  }
-];
-
-interface AuthLayoutProps {
+// Props for the SimpleAuthLayout component
+interface SimpleAuthLayoutProps {
   children: ReactNode;
   theme: "light" | "dark";
   onThemeToggle: () => void;
 }
 
-export default function AuthLayout({
+/**
+ * SimpleAuthLayout - A clean layout for authentication screens
+ * 
+ * This component provides a consistent layout for login, signup, 
+ * and other authentication-related screens.
+ */
+export default function SimpleAuthLayout({
   children,
   theme,
   onThemeToggle
-}: AuthLayoutProps) {
-  const currentImage = SHOWCASE_IMAGES[0];
+}: SimpleAuthLayoutProps) {
+  // Image to display on the left side
+  const backgroundImage = "https://images.unsplash.com/photo-1522071820081-009f0129c71c";
+  const authorName = "John Doe";
+  const authorRole = "Business Manager";
 
   return (
-    <div className={`min-h-screen w-full flex items-center justify-center transition-all ${
-      theme === "dark" ? "bg-[#111111]" : "bg-white"
+    <div className={`min-h-screen w-full flex items-center justify-center ${
+      theme === "dark" ? "bg-gray-900" : "bg-white"
     }`}>
       <div className={`w-full max-w-[1400px] h-[800px] mx-auto rounded-[32px] overflow-hidden flex relative ${
-        theme === "dark" ? "bg-[#151515]" : "bg-white"
+        theme === "dark" ? "bg-gray-800" : "bg-white"
       }`}>
-        {/* Left Section - Image */}
+        {/* Left Section - Background Image */}
         <div className="hidden lg:block lg:w-1/2 relative">
           <div className="absolute inset-0">
             <Image
-              src={currentImage.url}
+              src={backgroundImage}
               alt="Scenic Workspace"
               fill
               className="object-cover"
@@ -46,21 +47,21 @@ export default function AuthLayout({
             />
             <div className={`absolute inset-0 ${
               theme === "dark"
-                ? "bg-gradient-to-t from-[#151515] via-transparent to-transparent"
+                ? "bg-gradient-to-t from-gray-800 via-transparent to-transparent"
                 : "bg-gradient-to-t from-white via-transparent to-transparent"
             }`} />
           </div>
           
-          {/* Navigation */}
+          {/* Navigation Links */}
           <div className="absolute top-0 left-0 right-0 p-8 flex justify-between items-center z-10">
             <div>
               <Link 
-                href="/venues" 
+                href="/" 
                 className={`text-sm px-5 py-2.5 rounded-full ${
                   theme === "dark" ? "text-white/90 bg-white/5" : "text-gray-600 bg-black/5"
                 }`}
               >
-                Browse Venues
+                Home
               </Link>
             </div>
             <div className="flex gap-3">
@@ -83,7 +84,7 @@ export default function AuthLayout({
             </div>
           </div>
           
-          {/* Profile Section */}
+          {/* Author Info */}
           <div className="absolute bottom-8 left-8 right-8 flex items-center z-10">
             <div className="flex items-center gap-4">
               <div className="w-12 h-12 rounded-full overflow-hidden ring-2 ring-black/5">
@@ -98,22 +99,22 @@ export default function AuthLayout({
               </div>
               <div>
                 <h3 className={`font-medium ${theme === "dark" ? "text-white/90" : "text-gray-700"}`}>
-                  {currentImage.author}
+                  {authorName}
                 </h3>
                 <p className={theme === "dark" ? "text-white/50" : "text-gray-500"}>
-                  {currentImage.role}
+                  {authorRole}
                 </p>
               </div>
             </div>
           </div>
         </div>
 
-        {/* Right Section - Form */}
+        {/* Right Section - Form Content */}
         <div className={`w-full lg:w-1/2 flex items-center justify-center p-8 lg:p-14 ${
-          theme === "dark" ? "bg-[#151515]" : "bg-white"
+          theme === "dark" ? "bg-gray-800" : "bg-white"
         }`}>
           <div className="w-full max-w-md space-y-8">
-            {/* Header with Theme Selection */}
+            {/* Header with App Name and Theme Toggle */}
             <div className="flex justify-between items-center">
               <h1 className={`text-xl font-semibold ${
                 theme === "dark" ? "text-white" : "text-gray-900"
@@ -138,7 +139,7 @@ export default function AuthLayout({
               </button>
             </div>
             
-            {/* Content */}
+            {/* Main Content - Children */}
             <div className={theme === "dark" ? "text-white/90" : "text-gray-700"}>
               {children}
             </div>
